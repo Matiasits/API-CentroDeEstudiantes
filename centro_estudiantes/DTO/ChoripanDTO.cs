@@ -13,8 +13,9 @@ namespace centro_estudiantes.dto.Choripan
         public string? Pan {get; set;}
         
         public int IdUsuario {get; set;}
-        
+
         public DateTime FHAlta { get; set; }
+
         public DateTime? FHBaja { get; set; }
     }
 }

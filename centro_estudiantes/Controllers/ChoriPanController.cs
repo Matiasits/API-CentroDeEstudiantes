@@ -71,9 +71,9 @@ namespace centro_estudiantes.Controllers
     public class ChoriPanInputModel
     {
         public int TipoChoriId { get; set; }
-        public string Verdura { get; set; }
-        public string Pan { get; set; }
-        public string Aderezo { get; set; }
+        public string? Verdura { get; set; }
+        public string? Pan { get; set; }
+        public string? Aderezo { get; set; }
         public int UsuarioId { get; set; }
     }
 }

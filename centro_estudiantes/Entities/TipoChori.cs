@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace centro_estudiantes.Entities.TipoChoris
+namespace centro_estudiantes.Entities.TipoChori
 {
     public class TipoChori
     {   

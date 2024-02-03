@@ -1,6 +1,6 @@
 namespace centro_estudiantes.dto.Roles
 {
-    public class Rol
+    public class RolDTO
     {   
         #region Properties
         public int IdRol {get; set;}

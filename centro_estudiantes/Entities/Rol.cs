@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace centro_estudiantes.Entities.Roles
+namespace centro_estudiantes.Entities.Rol
 {
     public class Rol
     {   

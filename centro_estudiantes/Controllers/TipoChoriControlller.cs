@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using centro_estudiantes.Data;
+using centro_estudiantes.dto.TipoChoris; 
+
 
 namespace centro_estudiantes.Controllers
 {
@@ -18,14 +20,17 @@ namespace centro_estudiantes.Controllers
         }
 
         [HttpGet(Name = "GetTiposChori")]
-        public async Task<ActionResult<List<string>>> Get()
+        public async Task<ActionResult<List<TipoChori>>> Get()
         {
             try
             {
                 // Obtener tipos de choris
-                List<string> listaTipoChori = await _dataContext.TipoChori
-                    .Select(tipoChori => tipoChori.TipoDeChori)
-                    .Distinct()
+                List<TipoChori> listaTipoChori = await _dataContext.TipoChori
+                    .Select(tipoChori => new TipoChori
+                    {
+                        IdTipoChori = tipoChori.IdTipoChori,
+                        TipoDeChori = tipoChori.TipoDeChori
+                    })
                     .ToListAsync();
 
                 return Ok(listaTipoChori);
