@@ -12,12 +12,12 @@ builder.Services.AddSwaggerGen();
 
 var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>();
 
-builder.Services.AddCors(options => {
-    options.AddPolicy("api-cors", policy => {
-        policy.WithOrigins(allowedOrigins)
-            .AllowAnyHeader()
-            .AllowAnyMethod();
-    });
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("CorsPolicy",
+                builder => builder.WithOrigins("http://localhost:5500")
+                    .AllowAnyHeader()
+                    .AllowAnyMethod());
 });
 
 builder.Services.AddDbContext<DataContext>(options => {
@@ -36,6 +36,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
 app.UseCors("api-cors");
 
 app.UseHttpsRedirection();
