@@ -2,9 +2,9 @@
 {
     public class ImageDTO
     {
-        public long Id { get; set; } = 0;
+        public int Id { get; set; }
 
-        public byte[] ImageData { get; set; } = null;
+        public IFormFile ImageData { get; set; } = null!;
 
         public DateTime? UploadDate { get; set; } = null;
         

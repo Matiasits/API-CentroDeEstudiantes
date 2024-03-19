@@ -1,113 +1,85 @@
-﻿using centro_estudiantes.Data;
+﻿using System;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Http;
-using System.IO;
 using centro_estudiantes.Entities;
-using Microsoft.AspNetCore.Http;
-using System.ComponentModel.DataAnnotations;
+using centro_estudiantes.DTO;
+using System.Collections.Generic;
+using System.IO;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Logging; 
 
-
-[ApiController]
-[Route("[controller]")]
-public class ImageController : ControllerBase
+namespace centro_estudiantes.Controllers
 {
-    private readonly DataContext dataContext;
-
-    public ImageController(DataContext dataContext)
+    [Route("[controller]")]
+    [ApiController]
+    public class ImageController : ControllerBase
     {
-        this.dataContext = dataContext;
-    }
+        private readonly List<Image> _images = new List<Image>(); // Lista para simular almacenamiento de imágenes
+        private readonly ILogger<ImageController> _logger; // Agrega esta variable de clase
 
-    [HttpGet("{idImagen}")]
-    public IActionResult GetImage(long idImagen)
-    {
-        Image imageDB = this.dataContext.Image.Find(idImagen);
-        if (imageDB == null)
+        public ImageController(ILogger<ImageController> logger) // Agrega este constructor para inyectar ILogger
         {
-            return NotFound("Imagen no encontrada");
+            _logger = logger;
         }
 
-        return File(imageDB.ImageData, "image/jpg");
-    }
-
-    [HttpPost]
-    public IActionResult UploadImage([FromForm] IFormFile file)
-    {
-        if (file == null || file.Length == 0)
+        [HttpPost]
+        public ActionResult<long> UploadImage([FromForm] ImageDTO imageDTO)
         {
-            return BadRequest("Archivo no válido");
-        }
-
-        using (var memoryStream = new MemoryStream())
-        {
-            file.CopyTo(memoryStream);
-
-            var image = new Image
+            try
             {
-                ImageData = memoryStream.ToArray(),
-                UploadDate = DateTime.Now
-            };
-
-            dataContext.Image.Add(image);
-            dataContext.SaveChanges();
-
-            return Ok(new { image.Id });
-        }
-    }
-
-    public class MaxFileSizeAttribute : ValidationAttribute
-    {
-        private readonly long _maxFileSize;
-
-        public MaxFileSizeAttribute(long maxFileSize)
-        {
-            _maxFileSize = maxFileSize;
-        }
-
-        protected override ValidationResult IsValid(object value, ValidationContext validationContext)
-        {
-            if (value is IFormFile file)
-            {
-                if (file.Length > _maxFileSize)
+                // Verificar si se envió algún archivo
+                if (imageDTO.ImageData == null || imageDTO.ImageData.Length == 0)
                 {
-                    return new ValidationResult($"El tamaño del archivo no debe superar {_maxFileSize} bytes.");
+                    return BadRequest("No se proporcionó ningún archivo de imagen.");
                 }
-            }
 
-            return ValidationResult.Success;
-        }
-    }
-
-    public class AllowedExtensionsAttribute : ValidationAttribute
-    {
-        private readonly string[] _allowedExtensions;
-
-        public AllowedExtensionsAttribute(string[] allowedExtensions)
-        {
-            _allowedExtensions = allowedExtensions;
-        }
-
-        protected override ValidationResult IsValid(object value, ValidationContext validationContext)
-        {
-            if (value is IFormFile file)
-            {
-                var fileExtension = Path.GetExtension(file.FileName).ToLower();
-                if (!_allowedExtensions.Contains(fileExtension))
+                // Leer los datos de la imagen desde el archivo
+                byte[] imageData;
+                using (var memoryStream = new MemoryStream())
                 {
-                    return new ValidationResult($"Solo se permiten archivos con las siguientes extensiones: {string.Join(", ", _allowedExtensions)}");
+                    imageDTO.ImageData.CopyTo(memoryStream);
+                    imageData = memoryStream.ToArray();
                 }
+
+                // Crear una instancia de Image
+                var image = new Image
+                {
+                    Id = imageDTO.Id,
+                    ImageData = imageData,
+                    UploadDate = imageDTO.UploadDate ?? DateTime.UtcNow // Si no se especifica la fecha, usar la fecha actual
+                };
+
+                // Simular el almacenamiento de la imagen (podrías guardarla en una base de datos o en un almacenamiento en la nube)
+                _images.Add(image);
+
+                return Ok(image.Id); // Devolver el ID de la imagen cargada
             }
-
-            return ValidationResult.Success;
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al cargar la imagen.");
+                return StatusCode(500, "Error interno del servidor al cargar la imagen.");
+            }
         }
-    }
 
-    public class FileInputModel
-    {
-        [Required(ErrorMessage = "El archivo es obligatorio.")]
-        [DataType(DataType.Upload)]
-        [MaxFileSize(5 * 1024 * 1024)] // Ajusta el tamaño máximo permitido según tus necesidades
-        [AllowedExtensions(new string[] { ".jpg", ".jpeg", ".png", ".gif" })] // Ajusta las extensiones permitidas según tus necesidades
-        public IFormFile File { get; set; }
+
+        [HttpGet("{id}")]
+        public ActionResult GetImage(long id)
+        {
+            try
+            {
+                // Buscar la imagen por su ID
+                var image = _images.Find(i => i.Id == id);
+
+                if (image == null)
+                    return NotFound(); // Si no se encuentra la imagen, devolver 404 Not Found
+
+                // Devolver la imagen como un archivo de contenido binario
+                return File(image.ImageData, "image/jpeg"); // Cambia "image/jpeg" al tipo de contenido adecuado según el formato de tus imágenes
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener la imagen.");
+                return StatusCode(500, "Error interno del servidor al obtener la imagen.");
+            }
+        }
     }
 }

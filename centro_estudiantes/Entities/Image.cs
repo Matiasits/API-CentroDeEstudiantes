@@ -2,9 +2,9 @@
 {
     public class Image
     {
-        public long Id { get; set; } = 0;
+        public int Id { get; set; }
 
-        public byte[] ImageData { get; set; } = null;
+        public byte[] ImageData { get; set; } = null!;
 
         public DateTime? UploadDate { get; set; } = null;
     }
